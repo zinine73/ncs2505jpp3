@@ -5,12 +5,18 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
-    Rigidbody playerRb;
     public float jumpForce;
     public float gravityModifier;
     public bool isOnGround = true;
     public bool gameOver = false;
+    public ParticleSystem explosionParticle;
+    public ParticleSystem dirtParticle;
+    public AudioClip jumpSound;
+    public AudioClip crashSound;
+
+    Rigidbody playerRb;
     Animator playerAnim;
+    AudioSource playerAudio;
     public GameObject gameOverPanel;
     readonly int JUMP_TRIG = Animator.StringToHash("Jump_trig");
     readonly int DEATH_BOOL = Animator.StringToHash("Death_b");
@@ -24,6 +30,7 @@ public class PlayerController : MonoBehaviour
             Debug.LogWarning("none RB!");
         }
         playerAnim = GetComponent<Animator>();
+        playerAudio = GetComponent<AudioSource>();
         Physics.gravity = new Vector3(0, gravityModifier, 0);
     }
 
@@ -36,6 +43,8 @@ public class PlayerController : MonoBehaviour
                 ForceMode.Impulse);
             isOnGround = false;
             playerAnim.SetTrigger(JUMP_TRIG);
+            dirtParticle.Stop();
+            playerAudio.PlayOneShot(jumpSound, 1.0f);
         }
     }
 
@@ -44,6 +53,7 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.CompareTag("GROUND"))
         {
             isOnGround = true;
+            dirtParticle.Play();
         }
         else if (collision.gameObject.CompareTag("OBSTACLE"))
         {
@@ -52,6 +62,9 @@ public class PlayerController : MonoBehaviour
             playerAnim.SetBool(DEATH_BOOL, true);
             playerAnim.SetInteger(DEATH_TYPE, 1);
             gameOverPanel.SetActive(true);
+            explosionParticle.Play();
+            dirtParticle.Stop();
+            playerAudio.PlayOneShot(crashSound, 1.0f);
         }
     }
 }
